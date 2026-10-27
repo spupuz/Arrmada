@@ -99,7 +99,7 @@ export function LibraryGrid<T extends LibraryItem>(p: LibraryGridProps<T>) {
   // The grid renders a few screens and grows as it scrolls; a new scope, filter, search or
   // sort starts it from the top again. The table does the same.
   const listKey = `${p.scope?.picker.value ?? ""}|${active?.key}|${q}|${sortState.key}:${sortState.dir}`;
-  const grid = useProgressive(visible, "grid", listKey);
+  const grid = useProgressive(visible, "grid", listKey, view.mode === "grid");
   // The Sort menu lists the config's orders; a column sort picked in the table (Codec)
   // joins it while it's in use, so the menu always names the order on screen.
   const menuChoices = config.sorts.some((s) => s.key === sortState.key) || !choice ? config.sorts : [...config.sorts, { key: choice.key, label: choice.label }];

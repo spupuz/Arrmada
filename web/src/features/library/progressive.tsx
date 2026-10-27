@@ -47,13 +47,13 @@ function scrollParent(el: HTMLElement): HTMLElement | null {
  * Each history entry remembers how far its list had grown, so Back to a page scrolled
  * deep renders that much straight away and the scroll position can be put back.
  */
-export function useProgressive<T>(items: T[], id: string, resetOn: string): { shown: T[]; sentinel: ReactNode } {
+export function useProgressive<T>(items: T[], id: string, resetOn: string, active: boolean = true): { shown: T[]; sentinel: ReactNode } {
   const key = `${useLocation().key}:${id}`;
   const [count, setCount] = useState(() => Math.max(FIRST, load()[key] ?? 0));
   // A new filter, search or sort shows its own first screens (adjusted during render, so
   // the long list never paints once more first).
   const [seen, setSeen] = useState(resetOn);
-  if (seen !== resetOn) {
+  if (seen !== resetOn && active) {
     setSeen(resetOn);
     setCount(FIRST);
   }
@@ -61,14 +61,15 @@ export function useProgressive<T>(items: T[], id: string, resetOn: string): { sh
   const more = count < total;
 
   useEffect(() => {
+    if (!active) return;
     if (count > FIRST || load()[key] !== undefined) save(key, count);
-  }, [key, count]);
+  }, [key, count, active]);
 
   // The marker's element in state, not a ref: it comes and goes (grid ↔ table, the
   // list's loading and empty states) and each new one needs watching.
   const [el, setEl] = useState<HTMLDivElement | null>(null);
   useEffect(() => {
-    if (!more || !el) return;
+    if (!more || !el || !active) return;
     // No IntersectionObserver (an old browser, the test DOM): everything, as before.
     if (typeof IntersectionObserver === "undefined") {
       setCount(total);
@@ -81,7 +82,7 @@ export function useProgressive<T>(items: T[], id: string, resetOn: string): { sh
     }, { root: scrollParent(el), rootMargin: `0px 0px ${AHEAD} 0px` });
     io.observe(el);
     return () => io.disconnect();
-  }, [el, more, count, total]);
+  }, [el, more, count, total, active]);
 
   return {
     shown: more ? items.slice(0, count) : items,
