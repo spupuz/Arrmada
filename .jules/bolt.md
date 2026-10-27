@@ -1,0 +1,3 @@
+## 2024-05-24 - Memoizing LibraryCard with custom equality
+**Learning:** In `LibraryGrid`, `LibraryCard` components re-render every time the grid state (like selection or item download progress) changes. This is because functions like `onToggle` are created dynamically in the loop `onToggle={() => sel.toggle(it.id)}`, breaking standard memoization.
+**Action:** Use `React.memo` with a custom equality function for `LibraryCard` (checking just `item`, `selected`, `selectable`, and `config`) to prevent re-rendering all grid items when a single property like `selected` or `download.progress` changes for a few items. This is vital for large virtualized/progressive library lists.
