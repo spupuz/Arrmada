@@ -25,7 +25,7 @@ export function LibraryTable<T extends LibraryItem>({ items, config, selectable,
   // With a Year column of its own, the title cell leaves the year out.
   const yearCol = cols.some((c) => c.key === "year");
   // Rows render a few screens at a time, like the grid's cards.
-  const rows = useProgressive(items, "table", listKey);
+  const rows = useProgressive(items, "table", listKey, true); // The table mounts when view.mode === "table"
 
   return (
     <>

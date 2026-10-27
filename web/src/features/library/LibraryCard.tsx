@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link } from "react-router-dom";
 import { shownTitle } from "../../lib/displayTitle";
 import { posterThumb } from "../../lib/img";
@@ -31,7 +32,7 @@ function SelectTick({ on }: { on: boolean }) {
 // hover for a mouse, and on keyboard focus — the old hover-only Remove and Search buttons
 // couldn't be reached on a phone or a TV browser at all. The card doesn't clip its
 // contents (only the poster does), so the menu can open past the card's edge.
-export function LibraryCard<T extends LibraryItem>({ item, config, selectable, selected, onToggle }: {
+export const LibraryCard = memo(function LibraryCard<T extends LibraryItem>({ item, config, selectable, selected, onToggle }: {
   item: T;
   config: LibraryConfig<T>;
   selectable: boolean;
@@ -87,4 +88,4 @@ export function LibraryCard<T extends LibraryItem>({ item, config, selectable, s
       )}
     </div>
   );
-}
+}) as <T extends LibraryItem>(props: { item: T; config: LibraryConfig<T>; selectable: boolean; selected: boolean; onToggle: () => void; }) => JSX.Element;
