@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { DiscoverCard } from "../../lib/api";
 import { usePoll } from "../../lib/usePoll";
@@ -11,7 +11,7 @@ export function browseLink(list: string, media: string): string {
   return `/discover/browse?list=${list}&media=${media}`;
 }
 
-export function PosterRow({ title, load, ctx, order, excludeOwned, hideOnError, hideUntilLoaded, seeAll }: {
+export const PosterRow = React.memo(function PosterRow({ title, load, ctx, order, excludeOwned, hideOnError, hideUntilLoaded, seeAll }: {
   title: string;
   /** "See all →": where the row's whole list opens (a browse grid, a collection). */
   seeAll?: string | (() => void);
@@ -94,9 +94,9 @@ export function PosterRow({ title, load, ctx, order, excludeOwned, hideOnError, 
       )}
     </div>
   );
-}
+});
 
-// SeeAll is a row's "See all →": a link to an address, or an action (opening a collection
+// SeeAllll is a row's "See all →": a link to an address, or an action (opening a collection
 // over the page goes through the overlay history).
 export function SeeAll({ to, label }: { to: string | (() => void); label: string }) {
   const aria = label ? `See all: ${label}` : "See all";
