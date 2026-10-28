@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import React, { type ReactNode } from "react";
 import { StatusChip, type Tone } from "../../ui";
 
 export interface PosterCardProps {
@@ -21,7 +21,7 @@ export interface PosterCardProps {
 // PosterCard is the poster tile every Discover surface shows, films and series and books
 // alike: the whole poster opens the item's sheet, a corner badge says where it stands, a
 // hover lifts it and offers a quick request, and an always-visible caption names it.
-export function PosterCard({ title, art, badge, progress, onOpen, quick, full, children }: PosterCardProps) {
+export const PosterCard = React.memo(function PosterCard({ title, art, badge, progress, onOpen, quick, full, children }: PosterCardProps) {
   return (
     <div className={`group ${full ? "w-full" : "w-[150px] flex-none"}`} style={{ scrollSnapAlign: "start" }}>
       <div
@@ -67,4 +67,4 @@ export function PosterCard({ title, art, badge, progress, onOpen, quick, full, c
       </div>
     </div>
   );
-}
+});

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { DiscoverCard, MediaRequest } from "../../lib/api";
 import { posterThumb } from "../../lib/img";
@@ -147,7 +147,7 @@ export function badgeFor(c: DiscoverCard, requested?: ReqStatus): { label: strin
   return null;
 }
 
-export function MediaCard({ c, ctx, full }: { c: DiscoverCard; ctx: RowCtx; full?: boolean }) {
+export const MediaCard = React.memo(function MediaCard({ c, ctx, full }: { c: DiscoverCard; ctx: RowCtx; full?: boolean }) {
   const openTitle = useOpenTitle();
   const [quickBusy, setQuickBusy] = useState(false);
   const canHover = useCanHover();
@@ -192,4 +192,4 @@ export function MediaCard({ c, ctx, full }: { c: DiscoverCard; ctx: RowCtx; full
       )}
     </PosterCard>
   );
-}
+});
