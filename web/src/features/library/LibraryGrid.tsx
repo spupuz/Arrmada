@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { usePersisted } from "../../lib/persist";
 import { useSearchParamState } from "../../lib/useSearchState";
 import { PHONE, useMediaQuery } from "../../lib/useMediaQuery";
@@ -115,12 +115,17 @@ export function LibraryGrid<T extends LibraryItem>(p: LibraryGridProps<T>) {
   // Only titles still in the library, and in the folder shown, count as selected: one
   // removed meanwhile (here or elsewhere) drops out instead of failing the next bulk action.
   const chosen = scoped.filter((it) => selected.has(it.id));
+
+  const toggleSelection = useCallback((id: number) => {
+    setSelected((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  }, []);
+
   const sel: LibrarySelection<T> = {
     active: multi,
     ids: new Set(chosen.map((it) => it.id)),
     items: chosen,
     visible,
-    toggle: (id) => setSelected((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; }),
+    toggle: toggleSelection,
     set: (ids) => setSelected(new Set(ids)),
     clear: () => setSelected(new Set()),
     exit: () => { setMulti(false); setSelected(new Set()); },
@@ -186,7 +191,7 @@ export function LibraryGrid<T extends LibraryItem>(p: LibraryGridProps<T>) {
         <>
           <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))" }}>
             {grid.shown.map((it) => (
-              <LibraryCard key={it.id} item={it} config={config} selectable={multi} selected={selected.has(it.id)} onToggle={() => sel.toggle(it.id)} />
+              <LibraryCard key={it.id} item={it} config={config} selectable={multi} selected={selected.has(it.id)} onToggle={sel.toggle} />
             ))}
           </div>
           {grid.sentinel}
