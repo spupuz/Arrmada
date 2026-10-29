@@ -1,0 +1,3 @@
+## 2023-10-29 - React.memo Optimization in Large Grids
+**Learning:** Wrapping complex UI components like library cards in `React.memo`, along with memoizing event handlers (e.g., using `useCallback` for toggling selection), significantly prevents unnecessary re-renders in large grids when unrelated state changes (like adding items to a selection array). It also impacts the overall JS bundle size which needs to be adjusted in bundle size budget scripts like `check-size.mjs`.
+**Action:** Identify list-like views in the codebase and check if their child components depend heavily on inline anonymous functions or non-memoized primitives that trigger deep DOM recalculations. Use `React.memo` and `useCallback` deliberately for these large scale lists.

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link } from "react-router-dom";
 import { shownTitle } from "../../lib/displayTitle";
 import { posterThumb } from "../../lib/img";
@@ -5,22 +6,22 @@ import { Menu } from "../../ui";
 import type { LibraryConfig, LibraryItem } from "./types";
 
 // Poster is the card art, or the title on a warm gradient when there's none.
-export function Poster({ url, title }: { url?: string; title: string }) {
+export const Poster = memo(function Poster({ url, title }: { url?: string; title: string }) {
   if (url) return <img src={posterThumb(url)} alt={title} className="h-full w-full object-cover" loading="lazy" decoding="async" />;
   return (
     <div className="flex h-full w-full items-end p-2.5" style={{ background: "linear-gradient(150deg, hsl(24 40% 30%), hsl(20 35% 16%))" }}>
       <span className="text-md font-bold text-white" style={{ textShadow: "0 1px 4px rgba(0,0,0,.6)" }}>{title}</span>
     </div>
   );
-}
+});
 
-function SelectTick({ on }: { on: boolean }) {
+const SelectTick = memo(function SelectTick({ on }: { on: boolean }) {
   return (
     <span className="absolute left-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-full" style={{ background: on ? "var(--accent)" : "rgba(20,12,7,.65)", border: `1.5px solid ${on ? "var(--accent)" : "rgba(255,255,255,.6)"}` }}>
       {on && <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 12l5 5L20 6" stroke="var(--accent-ink)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>}
     </span>
   );
-}
+});
 
 // LibraryCard is one poster in a library grid. In select mode the whole card toggles the
 // item; otherwise the poster and caption open it. The media-specific parts (caption,
@@ -31,12 +32,15 @@ function SelectTick({ on }: { on: boolean }) {
 // hover for a mouse, and on keyboard focus — the old hover-only Remove and Search buttons
 // couldn't be reached on a phone or a TV browser at all. The card doesn't clip its
 // contents (only the poster does), so the menu can open past the card's edge.
-export function LibraryCard<T extends LibraryItem>({ item, config, selectable, selected, onToggle }: {
+//
+// ⚡ Bolt: Wrapped in React.memo() to prevent unnecessary re-renders when scrolling large libraries
+// or when selecting/unselecting other cards.
+export const LibraryCard = memo(function LibraryCard<T extends LibraryItem>({ item, config, selectable, selected, onToggle }: {
   item: T;
   config: LibraryConfig<T>;
   selectable: boolean;
   selected: boolean;
-  onToggle: () => void;
+  onToggle: (id: number) => void;
 }) {
   const st = config.card.status(item);
   const name = shownTitle(item);
@@ -57,7 +61,7 @@ export function LibraryCard<T extends LibraryItem>({ item, config, selectable, s
     <div className="group relative rounded-xl" style={{ border: `1px solid ${selected ? "var(--accent)" : "var(--line)"}`, background: "var(--panel)", boxShadow: selected ? "0 0 0 1px var(--accent)" : "none" }}>
       <div className="relative overflow-hidden rounded-t-xl" style={{ aspectRatio: "2/3" }}>
         {selectable ? (
-          <button onClick={onToggle} aria-pressed={selected} className="block h-full w-full text-left">
+          <button onClick={() => onToggle(item.id)} aria-pressed={selected} className="block h-full w-full text-left">
             <Poster url={item.poster_url} title={name} />
             {selected && <div className="absolute inset-0" style={{ background: "var(--accent-soft)" }} />}
           </button>
@@ -81,10 +85,10 @@ export function LibraryCard<T extends LibraryItem>({ item, config, selectable, s
         </div>
       )}
       {selectable ? (
-        <button onClick={onToggle} className="block w-full p-2.5 text-left">{caption}</button>
+        <button onClick={() => onToggle(item.id)} className="block w-full p-2.5 text-left">{caption}</button>
       ) : (
         <Link to={to} className="block p-2.5">{caption}</Link>
       )}
     </div>
   );
-}
+}) as <T extends LibraryItem>(p: { item: T; config: LibraryConfig<T>; selectable: boolean; selected: boolean; onToggle: (id: number) => void }) => JSX.Element;
