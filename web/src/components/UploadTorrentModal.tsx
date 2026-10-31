@@ -82,6 +82,8 @@ export function UploadTorrentModal({
         <div
           role="button"
           tabIndex={0}
+          aria-label={filename ? `Selected file: ${filename}. Click or press Enter to change.` : "Choose a .torrent or .nzb file. Click or press Enter to browse, or drag one here."}
+          aria-busy={busy && !preview}
           onClick={() => inputRef.current?.click()}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); inputRef.current?.click(); } }}
           onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
