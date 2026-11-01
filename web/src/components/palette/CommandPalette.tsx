@@ -66,19 +66,24 @@ export default function CommandPalette({ initialQuery = "", onClose }: { initial
     return () => { live = false; clearTimeout(t); };
   }, [q, metadataReady]);
 
-  const current = <T extends { title: string }>(a: Answer<T>): T[] =>
-    !q ? [] : a.q === q ? a.hits : a.hits.filter((h) => score(q, h.title) > 0);
-  const sections = results({
-    query,
-    viewer,
-    pages,
-    actions,
-    library: current(library),
-    discover: q.length >= 2 ? current(discover) : [],
-    discoverReady: metadataReady,
-    recents,
-  });
-  const flat = sections.flatMap((s) => s.items);
+  // Performance optimization: Memoize the results generation so that we don't recalculate
+  // O(N log N) scores and sorting when moving up and down the list using arrow keys.
+  const { sections, flat } = useMemo(() => {
+    const current = <T extends { title: string }>(a: Answer<T>): T[] =>
+      !q ? [] : a.q === q ? a.hits : a.hits.filter((h) => score(q, h.title) > 0);
+
+    const s = results({
+      query,
+      viewer,
+      pages,
+      actions,
+      library: current(library),
+      discover: q.length >= 2 ? current(discover) : [],
+      discoverReady: metadataReady,
+      recents,
+    });
+    return { sections: s, flat: s.flatMap((sec) => sec.items) };
+  }, [query, q, viewer, pages, actions, library, discover, metadataReady, recents]);
 
   // The highlighted row, by id so a list that grows under it (an answer arriving) keeps it.
   const [activeId, setActiveId] = useState<string | null>(null);

@@ -100,5 +100,5 @@ export function useScrollMemory(mainRef: RefObject<HTMLElement>): void {
     const timer = setTimeout(stop, GIVE_UP_MS);
     for (const ev of ["wheel", "touchstart", "keydown"] as const) el.addEventListener(ev, stop, { passive: true });
     pending.current = stop;
-  }, [location.key, location.pathname, navType, mainRef]);
+  }, [location.key, location.pathname, location.state, navType, mainRef]);
 }
