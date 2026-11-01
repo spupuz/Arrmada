@@ -588,8 +588,8 @@ function ManualImportModal({ book, onClose, onImported }: { book: Book; onClose:
   const [target, setTarget] = useState(0);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const load = () => api.bookManualImportList(book.id).then((r) => { setCands(r.candidates); setNotice(importListNotice(r)); }).catch((e: Error) => setError(e.message));
-  useEffect(() => { load(); }, [book.id]);
+  const load = useCallback(() => api.bookManualImportList(book.id).then((r) => { setCands(r.candidates); setNotice(importListNotice(r)); }).catch((e: Error) => setError(e.message)), [book.id]);
+  useEffect(() => { load(); }, [load]);
 
   const doImport = async (path: string, edition: string) => {
     setImporting(path); setError(null);

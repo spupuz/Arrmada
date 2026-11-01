@@ -55,7 +55,7 @@ export function BookReleaseModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const releases = list?.releases ?? [];
+  const releases = useMemo(() => list?.releases ?? [], [list]);
   const ebooks = useMemo(() => releases.filter((r) => r.edition === "ebook"), [releases]);
   const audiobooks = useMemo(() => releases.filter((r) => r.edition === "audiobook"), [releases]);
   // Land on whichever tab actually has results (audiobooks preferred).

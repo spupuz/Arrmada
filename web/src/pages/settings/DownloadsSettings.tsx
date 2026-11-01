@@ -660,10 +660,12 @@ const seedingActionValidator = (v: string): string | null => {
 };
 
 // Actions to verify and apply global seeding limits
+type Verification = { Title: string; SeedRatio: number | null; SeedRatioLimit: number; SeedingTimeHours: number; MaxSeedingTime: number; Action: string; HasOverride: boolean; };
+
 function GlobalSeedingActions() {
   const [verifyBusy, setVerifyBusy] = useState(false);
   const [applyBusy, setApplyBusy] = useState(false);
-  const [verifyData, setVerifyData] = useState<{ verifications: any[]; count: number } | null>(null);
+  const [verifyData, setVerifyData] = useState<{ verifications: Verification[]; count: number } | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
   const verify = async () => {
