@@ -193,12 +193,12 @@ export function AudioVersionPanel({ book, v, onChange }: { book: Book; v: AudioV
           {has && v.narrator && <div className="mt-1.5 text-sm text-ink-dim">Narrator: {v.narrator}</div>}
         </div>
         <div className="flex flex-none flex-wrap items-center justify-end gap-1.5">
-          <button disabled={busy !== null} onClick={() => setBrowsing(true)} className={small} style={ghost} title="Browse audiobook releases on your indexers and pick one for this version">Search indexers</button>
-          {!has && v.terms.length > 0 && <button disabled={busy !== null} onClick={search} className={small} style={ghost} title="Let Arrmada pick and grab the best release matching this version's words">{busy === "search" ? "Searching…" : "Auto search"}</button>}
-          <button disabled={busy !== null} onClick={toggleMonitor} className={small} style={ghost} title="Whether the automatic searches look for this version">{v.monitored ? "Monitored" : "Monitor"}</button>
-          <button disabled={busy !== null} onClick={() => setEditing(true)} className={small} style={ghost}>Edit</button>
-          {has && <button disabled={busy !== null} onClick={() => { setDelErr(null); setConfirm("file"); }} className={small} style={{ border: "1px solid var(--reject)", color: "var(--reject-text)" }}>Delete files</button>}
-          <button disabled={busy !== null} onClick={() => { setDelErr(null); setConfirm("remove"); }} className={small} style={{ border: "1px solid var(--reject)", color: "var(--reject-text)" }}>Remove</button>
+          <button disabled={busy !== null} onClick={() => setBrowsing(true)} className={small} style={ghost} title="Browse audiobook releases on your indexers and pick one for this version" aria-label={`Search indexers for ${v.label}`}>Search indexers</button>
+          {!has && v.terms.length > 0 && <button disabled={busy !== null} onClick={search} className={small} style={ghost} title="Let Arrmada pick and grab the best release matching this version's words" aria-label={`Auto search for ${v.label}`}>{busy === "search" ? "Searching…" : "Auto search"}</button>}
+          <button disabled={busy !== null} onClick={toggleMonitor} className={small} style={ghost} title="Whether the automatic searches look for this version" aria-pressed={v.monitored} aria-label={`Monitor ${v.label}`}>{v.monitored ? "Monitored" : "Monitor"}</button>
+          <button disabled={busy !== null} onClick={() => setEditing(true)} className={small} style={ghost} aria-label={`Edit ${v.label}`}>Edit</button>
+          {has && <button disabled={busy !== null} onClick={() => { setDelErr(null); setConfirm("file"); }} className={small} style={{ border: "1px solid var(--reject)", color: "var(--reject-text)" }} aria-label={`Delete files for ${v.label}`}>Delete files</button>}
+          <button disabled={busy !== null} onClick={() => { setDelErr(null); setConfirm("remove"); }} className={small} style={{ border: "1px solid var(--reject)", color: "var(--reject-text)" }} aria-label={`Remove ${v.label}`}>Remove</button>
         </div>
       </div>
       {confirm && (
