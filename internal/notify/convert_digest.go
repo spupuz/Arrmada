@@ -59,8 +59,11 @@ const maxProblemKeys = 500
 type digestState struct {
 	Files      int64 `json:"files"`
 	SavedBytes int64 `json:"saved_bytes"`
-	// ProblemKeys are the files that failed or stalled, each once ("movie:12").
-	ProblemKeys []string `json:"problem_keys,omitempty"`
+	// ProblemKeys maps problem file keys to struct{}. A separate order slice is kept
+	// for JSON serialization order; lookups use the map for O(1).
+	ProblemKeys map[string]struct{} `json:"-"`
+	// ProblemKeyOrder keeps insertion order for JSON output; ProblemKeys is the fast path.
+	ProblemKeyOrder []string `json:"problem_keys,omitempty"`
 	// ExtraProblems counts problems past maxProblemKeys.
 	ExtraProblems int64 `json:"extra_problems,omitempty"`
 	// Since is when the first of these happened (unix seconds; 0 = nothing yet).
@@ -143,16 +146,15 @@ func (st *digestState) addProblem(key string) {
 		st.ExtraProblems++
 		return
 	}
-	for _, k := range st.ProblemKeys {
-		if k == key {
-			return
-		}
+	if _, ok := st.ProblemKeys[key]; ok {
+		return
 	}
 	if len(st.ProblemKeys) >= maxProblemKeys {
 		st.ExtraProblems++
 		return
 	}
-	st.ProblemKeys = append(st.ProblemKeys, key)
+	st.ProblemKeys[key] = struct{}{}
+	st.ProblemKeyOrder = append(st.ProblemKeyOrder, key)
 }
 
 // update changes the counts and saves them at once.
