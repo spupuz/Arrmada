@@ -3,6 +3,7 @@ package httpapi
 import (
 	"context"
 	"errors"
+	"mime"
 	"net/http"
 	"strconv"
 
@@ -217,7 +218,7 @@ func (a *api) handleConvertCompareFile(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	w.Header().Set("Content-Disposition", `attachment; filename="`+r.PathValue("name")+`"`)
+	w.Header().Set("Content-Disposition", mime.FormatMediaType("attachment", map[string]string{"filename": r.PathValue("name")}))
 	http.ServeFile(w, r, path)
 }
 
