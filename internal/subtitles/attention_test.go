@@ -116,3 +116,44 @@ func TestParseMediaKey(t *testing.T) {
 		}
 	}
 }
+
+// TestActionableSingleQuery verifies Actionable counts parked backoff rows per
+// actionable reason in one GROUP BY query, preserving actionableReasons order and
+// leaving non-actionable reasons (no_match, quota, …) out.
+func TestActionableSingleQuery(t *testing.T) {
+	s, _ := ladderFixture(t, "en", englishAudio(), nil, &fakeAI{})
+	ctx := context.Background()
+
+	// Two auth_failed rows (oldest updated_at=100, detail "older" / "newer"),
+	// one model_missing row, and one no_match row that must be filtered out.
+	s.ledger.SaveBackoff(ctx, Backoff{MediaKey: "m:1", Lang: "en", VideoPath: "/m/Alpha.mkv", PrimaryReason: ResultAuthFailed, Detail: "older", UpdatedAt: 100})
+	s.ledger.SaveBackoff(ctx, Backoff{MediaKey: "m:2", Lang: "en", VideoPath: "/m/Beta.mkv", PrimaryReason: ResultAuthFailed, Detail: "newer", UpdatedAt: 200})
+	s.ledger.SaveBackoff(ctx, Backoff{MediaKey: "m:3", Lang: "en", VideoPath: "/m/Gamma.mkv", PrimaryReason: ResultModelMissing, Detail: "no model", UpdatedAt: 150})
+	s.ledger.SaveBackoff(ctx, Backoff{MediaKey: "m:4", Lang: "en", VideoPath: "/m/Delta.mkv", PrimaryReason: ResultNoMatch, UpdatedAt: 50})
+
+	acts, err := s.Actionable(ctx)
+	if err != nil {
+		t.Fatalf("Actionable: %v", err)
+	}
+	if len(acts) != 2 {
+		t.Fatalf("want 2 actionable reasons, got %d: %+v", len(acts), acts)
+	}
+	// Order must follow actionableReasons: auth_failed before model_missing.
+	if acts[0].Reason != string(ResultAuthFailed) || acts[1].Reason != string(ResultModelMissing) {
+		t.Errorf("order: %+v", acts)
+	}
+	if acts[0].Count != 2 {
+		t.Errorf("auth_failed count: got %d, want 2", acts[0].Count)
+	}
+	if acts[0].Since != 100 {
+		t.Errorf("auth_failed since: got %d, want 100 (oldest)", acts[0].Since)
+	}
+	// MAX(detail) is lexical; "older" < "newer" so "older" wins — same as the
+	// per-reason query this replaced.
+	if acts[0].Detail != "older" {
+		t.Errorf("auth_failed detail: got %q, want %q", acts[0].Detail, "older")
+	}
+	if acts[1].Count != 1 || acts[1].Since != 150 {
+		t.Errorf("model_missing: %+v", acts[1])
+	}
+}

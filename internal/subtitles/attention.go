@@ -284,43 +284,52 @@ type Actionable struct {
 // to exist.
 var actionableReasons = []Result{ResultAuthFailed, ResultModelMissing, ResultAIFailed}
 
-// Actionable counts the backoff rows for each reason that needs a person (one cheap
-// query; the board's presence check isn't repeated here).
+// Actionable counts the backoff rows for each reason that needs a person, in one query:
+// the per-reason loop this replaces issued one COUNT/MIN/MAX round-trip per reason (three
+// queries for three reasons) on an endpoint the Needs-you feed polls. A single
+// GROUP BY primary_reason returns the same rows, and the result is reassembled in
+// actionableReasons order so callers see the same sequence.
 func (s *Service) Actionable(ctx context.Context) ([]Actionable, error) {
-	var out []Actionable
-	for _, r := range actionableReasons {
-		n, since, detail, err := s.ledger.backoffSummary(ctx, r)
-		if err != nil {
-			return out, err
+	if !s.ledger.ok() {
+		return nil, nil
+	}
+	// One row per reason that has rows parked: count, oldest updated_at, a detail.
+	rows, err := s.ledger.db.QueryContext(ctx,
+		`SELECT primary_reason, COUNT(*), MIN(updated_at), MAX(detail) FROM subtitle_backoff `+
+			`WHERE primary_reason IN (?, ?, ?) GROUP BY primary_reason`,
+		string(ResultAuthFailed), string(ResultModelMissing), string(ResultAIFailed))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	byReason := map[Result]Actionable{}
+	for rows.Next() {
+		var reason string
+		var n int
+		var since *int64
+		var detail *string
+		if err := rows.Scan(&reason, &n, &since, &detail); err != nil {
+			return nil, err
 		}
-		if n > 0 {
-			out = append(out, Actionable{Reason: string(r), Count: n, Since: since, Detail: detail})
+		a := Actionable{Reason: reason, Count: n}
+		if since != nil {
+			a.Since = *since
+		}
+		if detail != nil {
+			a.Detail = *detail
+		}
+		byReason[Result(reason)] = a
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	out := make([]Actionable, 0, len(byReason))
+	for _, r := range actionableReasons {
+		if a, ok := byReason[r]; ok && a.Count > 0 {
+			out = append(out, a)
 		}
 	}
 	return out, nil
-}
-
-// backoffSummary is how many rows are parked for a reason, since when, and one detail.
-func (l *Ledger) backoffSummary(ctx context.Context, reason Result) (int, int64, string, error) {
-	if !l.ok() {
-		return 0, 0, "", nil
-	}
-	var n int
-	var since *int64
-	var detail *string
-	err := l.db.QueryRowContext(ctx, `SELECT COUNT(*), MIN(updated_at), MAX(detail) FROM subtitle_backoff WHERE primary_reason = ?`, string(reason)).Scan(&n, &since, &detail)
-	if err != nil {
-		return 0, 0, "", err
-	}
-	var s int64
-	var d string
-	if since != nil {
-		s = *since
-	}
-	if detail != nil {
-		d = *detail
-	}
-	return n, s, d, nil
 }
 
 // SourceCounts counts the live subtitles by where they came from (forced extras aside).
