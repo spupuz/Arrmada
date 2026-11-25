@@ -2107,7 +2107,7 @@ func (s *Service) Matcher(all []Movie) func(title string, year int) (Movie, bool
 func indexTitleKeys(all []Movie) (own, alt map[string][]Movie) {
 	taken := NewPrimaryKeys(all)
 	own = make(map[string][]Movie, len(all))
-	alt = map[string][]Movie{}
+	alt = make(map[string][]Movie, len(all))
 	for _, m := range all {
 		keys := TitleKeys(m, taken)
 		own[keys[0]] = append(own[keys[0]], m)
