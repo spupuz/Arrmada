@@ -290,10 +290,6 @@ func compileRegex(pattern string) (*regexp.Regexp, error) {
 	if len(pattern) > maxPatternLen {
 		return nil, fmt.Errorf("the pattern is %d characters long; the limit is %d", len(pattern), maxPatternLen)
 	}
-	if _, err := regexp.Compile(pattern); err != nil {
-		// Compiled without the (?i) prefix first, so the message quotes only what was typed.
-		return nil, err
-	}
 	return regexp.Compile("(?i)" + pattern)
 }
 
