@@ -119,21 +119,13 @@ func (s *Service) WarmCache(ctx context.Context) {
 	}
 
 	if s.series != nil {
-		if list, err := s.series.List(ctx); err == nil {
-			for _, sm := range list {
+		if libFiles, err := s.series.LibraryEpisodeFiles(ctx); err == nil {
+			for _, f := range libFiles {
 				if ctx.Err() != nil {
 					return
 				}
-				full, err := s.series.Get(ctx, sm.ID)
-				if err != nil {
-					continue
-				}
-				for _, sn := range full.Seasons {
-					for _, e := range sn.Episodes {
-						if e.HasFile && e.FilePath != "" {
-							warm(e.FilePath)
-						}
-					}
+				if f.Path != "" {
+					warm(f.Path)
 				}
 			}
 		}
